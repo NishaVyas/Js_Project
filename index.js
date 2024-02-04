@@ -1,60 +1,68 @@
-document.addEventListener('DOMContentLoaded', domContentLoader);
+document.addEventListener('DOMContentLoaded', () => {
+    domContentLoader(() => {
+        // callback function after DOM content is loaded
+    });
+});
 
-function handleFormSubmit(event) {
+async function handleFormSubmit(event, callback) {
     event.preventDefault();
     let myObj = {
         title: event.target.title.value,
         description: event.target.description.value,
     };
-    // Add new note
-    axios.post("https://crudcrud.com/api/92452ac711884b8787c916d9575a2f3e/noteData", myObj)
-        .then((response) => {
-            console.log(response);
-            domContentLoader(); // Update the website with new note details
-            event.target.reset(); // Clear the form
-        })
-        .catch(err => console.error(err));
+
+    try {
+        // Add new note
+        const response = await axios.post("https://crudcrud.com/api/443ea7e1581449718b5bc71d6cee412f/noteData", myObj);
+        console.log(response);
+        await domContentLoader(callback); // Update the website with new note details
+        event.target.reset(); // Clear the form
+    } catch (err) {
+        console.error(err);
+    }
 }
 
-function domContentLoader() {
+async function domContentLoader(callback) {
     const container = document.getElementById('noteContainer');
     const totalNotesSpan = document.getElementById('totalNotes');
     const showingNotesSpan = document.getElementById('showingNotes');
     container.innerHTML = '';
 
-    axios.get("https://crudcrud.com/api/92452ac711884b8787c916d9575a2f3e/noteData")
-        .then((response) => {
-            const data = response.data;
-            let totalNotes = 0;
-            let showingNotes = 0;
+    try {
+        const response = await axios.get("https://crudcrud.com/api/443ea7e1581449718b5bc71d6cee412f/noteData");
+        const data = response.data;
+        let totalNotes = 0;
+        let showingNotes = 0;
 
-            const searchTerm = document.querySelector('input[type="text"]').value.toLowerCase();
+        const searchTerm = document.querySelector('input[type="text"]').value.toLowerCase();
 
-            data.forEach((noteObj) => {
-                if (noteObj.title && noteObj.description) {
-                    totalNotes++;
+        for (const noteObj of data) {
+            if (noteObj.title && noteObj.description) {
+                totalNotes++;
 
-                    const isTitleMatch = noteObj.title.toLowerCase().includes(searchTerm);
-                    if (isTitleMatch) {
-                        // If there is a search term match, display the note
-                        showNoteDetails(noteObj, container);
-                        showingNotes++;
-                    }
+                const isTitleMatch = noteObj.title.toLowerCase().includes(searchTerm);
+                if (isTitleMatch) {
+                    showNoteDetails(noteObj, container, callback);
+                    showingNotes++;
                 }
-            });
+            }
+        }
 
-            // Display the total notes count
-            totalNotesSpan.textContent = totalNotes;
+        // Display the total notes count
+        totalNotesSpan.textContent = totalNotes;
 
-            // Display the showing notes count based on the search term
-            showingNotesSpan.textContent = showingNotes;
-        })
-        .catch((err) => {
-            console.log(err);
-        });
+        // Display the showing notes count based on the search term
+        showingNotesSpan.textContent = showingNotes;
+
+        if (callback && typeof callback === 'function') {
+            callback(); // Invoke the callback function if provided
+        }
+    } catch (err) {
+        console.log(err);
+    }
 }
 
-function showNoteDetails(noteObj, container) {
+function showNoteDetails(noteObj, container, callback) {
     const newDiv = document.createElement('div');
 
     const titleElement = document.createElement('strong');
@@ -73,25 +81,27 @@ function showNoteDetails(noteObj, container) {
     deleteButton.className = 'delete-button';
     newDiv.appendChild(deleteButton);
 
-    newDiv.addEventListener('click', function (event) {
+    newDiv.addEventListener('click', async function (event) {
         if (event.target.classList.contains('delete-button')) {
             const noteToDelete = event.target.parentElement;
             noteToDelete.remove();
-            axios.delete(`https://crudcrud.com/api/92452ac711884b8787c916d9575a2f3e/noteData/${noteObj._id}`)
-                .then((response) => {
-                    console.log(response);
-                    domContentLoader(); // Update the total and showing notes count after deleting a note
-                })
-                .catch((err) => {
-                    console.log(err);
-                });
+
+            try {
+                const response = await axios.delete(`https://crudcrud.com/api/443ea7e1581449718b5bc71d6cee412f/noteData/${noteObj._id}`);
+                console.log(response);
+                await domContentLoader(callback); // Update the total and showing notes count after deleting a note
+            } catch (err) {
+                console.log(err);
+            }
         }
     });
 }
 
 function handleSearch(event) {
-    // Trigger domContentLoader on each search to update showing notes count
-    domContentLoader();
+    //domContentLoader on each search to update showing notes count
+    domContentLoader(() => {
+        // Your callback function after content is loaded based on search
+    });
 }
 
 // Attach the handleSearch function to the input field for live search using keyup event
