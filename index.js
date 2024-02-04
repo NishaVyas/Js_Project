@@ -13,7 +13,7 @@ async function handleFormSubmit(event, callback) {
 
     try {
         // Add new note
-        const response = await axios.post("https://crudcrud.com/api/443ea7e1581449718b5bc71d6cee412f/noteData", myObj);
+        const response = await axios.post("https://crudcrud.com/api/a13e2108fdc242a5acc3bc4130ab1cea/noteData", myObj);
         console.log(response);
         await domContentLoader(callback); // Update the website with new note details
         event.target.reset(); // Clear the form
@@ -29,7 +29,7 @@ async function domContentLoader(callback) {
     container.innerHTML = '';
 
     try {
-        const response = await axios.get("https://crudcrud.com/api/443ea7e1581449718b5bc71d6cee412f/noteData");
+        const response = await axios.get("https://crudcrud.com/api/a13e2108fdc242a5acc3bc4130ab1cea/noteData");
         const data = response.data;
         let totalNotes = 0;
         let showingNotes = 0;
@@ -42,6 +42,7 @@ async function domContentLoader(callback) {
 
                 const isTitleMatch = noteObj.title.toLowerCase().includes(searchTerm);
                 if (isTitleMatch) {
+                    // If there is a search term match, display the note
                     showNoteDetails(noteObj, container, callback);
                     showingNotes++;
                 }
@@ -87,7 +88,7 @@ function showNoteDetails(noteObj, container, callback) {
             noteToDelete.remove();
 
             try {
-                const response = await axios.delete(`https://crudcrud.com/api/443ea7e1581449718b5bc71d6cee412f/noteData/${noteObj._id}`);
+                const response = await axios.delete(`https://crudcrud.com/api/a13e2108fdc242a5acc3bc4130ab1cea/noteData/${noteObj._id}`);
                 console.log(response);
                 await domContentLoader(callback); // Update the total and showing notes count after deleting a note
             } catch (err) {
@@ -98,7 +99,7 @@ function showNoteDetails(noteObj, container, callback) {
 }
 
 function handleSearch(event) {
-    //domContentLoader on each search to update showing notes count
+    // Trigger domContentLoader on each search to update showing notes count
     domContentLoader(() => {
         // Your callback function after content is loaded based on search
     });
